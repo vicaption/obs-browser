@@ -25,15 +25,42 @@
 #include "browser-source-base.hpp"
 #include "browser-source-listener-base.hpp"
 
+#define HOTKEY_RESTART_BUTTON             "hotkey_restart"
+#define TEXT_HOTKEY_RESTART_BUTTON        obs_module_text("Vicaption.StopHotkey")
+
+static void hotkey_restart(void *data, obs_hotkey_pair_id id, obs_hotkey_t *hotkey, bool pressed)
+{
+
+	if (!pressed) {
+
+		return;
+	}
+
+	BrowserSource *bs = static_cast<BrowserSource *>(data);
+	BrowserManager::Instance()->RefreshPageNoCache(bs->GetBrowserIdentifier());
+
+	return;
+}
+
 BrowserSource::BrowserSource(obs_data_t *settings, obs_source_t *source)
 : pimpl(new Impl(this)), source(source), browserIdentifier(0)
 {
+	this->source = source;
+	restart_hotkey_id = obs_hotkey_register_source(
+		this->source,
+		HOTKEY_RESTART_BUTTON, TEXT_HOTKEY_RESTART_BUTTON,
+		hotkey_restart, this);
+
 	UpdateSettings(settings);
 }
 
 
 BrowserSource::~BrowserSource()
 {
+	if (restart_hotkey_id != NULL) {
+		obs_hotkey_unregister(restart_hotkey_id);
+	}
+
 	if (browserIdentifier != 0) {
 		BrowserManager::Instance()->DestroyBrowser(browserIdentifier);
 	}

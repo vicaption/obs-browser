@@ -88,4 +88,6 @@ private:
 	int browserIdentifier;
 
 	std::mutex textureLock;
+
+	obs_hotkey_id restart_hotkey_id;
 };
